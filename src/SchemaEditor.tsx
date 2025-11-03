@@ -3,6 +3,7 @@ import { JsonSchema } from './schema';
 import Editor, { OnValidate, useMonaco } from '@monaco-editor/react';
 import type { IRange } from 'monaco-editor';
 import { ScrollType } from './monaco-helpers';
+import { dump } from 'js-yaml';
 
 export type SchemaEditorProps = {
   initialContent: unknown;
@@ -14,11 +15,6 @@ export type SchemaEditorProps = {
 /**
  * No more than 50 characters per line.
  */
-const editorPreamble = `
-// Copy-and-paste your JSON in here to live-edit
-// while reading the docs and also getting the
-// benefit of validation and autocompletion!
-`.trim();
 
 export const SchemaEditor: React.FC<SchemaEditorProps> = (props) => {
   const { initialContent, schema, validationRange, onValidate } = props;
@@ -31,7 +27,7 @@ export const SchemaEditor: React.FC<SchemaEditorProps> = (props) => {
       schemas: [
         {
           uri: 'https://json-schema.app/example.json', // id of the first schema
-          fileMatch: ['a://b/example.json'],
+          fileMatch: ['a://b/example.yaml'],
           schema: schema,
         },
       ],
@@ -50,9 +46,9 @@ export const SchemaEditor: React.FC<SchemaEditorProps> = (props) => {
   return (
     <Editor
       height="97vh"
-      defaultLanguage="json"
-      value={editorPreamble + '\n' + JSON.stringify(initialContent, null, 2)}
-      path="a://b/example.json"
+      defaultLanguage="yaml"
+      value={dump(initialContent)}
+      path="a://b/example.yaml"
       theme="vs-dark"
       saveViewState={false}
       onValidate={onValidate}

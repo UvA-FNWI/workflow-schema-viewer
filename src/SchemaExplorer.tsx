@@ -403,7 +403,7 @@ function createClickElement(details: JsonSchemaObjectClickProps): ClickElement {
       }
     }
 
-    const references = [...details.path.map(p => p.reference), props.reference];
+    const references = ["EntityType" + props.reference];
     return (
       <LinkPreservingSearch to={linkTo(details.basePathSegments, references)}>
         {findTitle(props.reference, props.schema) || props.fallbackTitle}
@@ -487,26 +487,12 @@ export class SchemaExplorer extends React.PureComponent<SchemaExplorerProps, Sch
         ),
       },
       {
-        view: 'example-json',
-        label: 'Example (JSON)',
-        content: (
-          <SchemaExplorerExample schema={schema} lookup={lookup} stage={stage} format="json" />
-        ),
-      },
-      {
         view: 'example-yaml',
         label: 'Example (YAML)',
         content: (
           <SchemaExplorerExample schema={schema} lookup={lookup} stage={stage} format="yaml" />
         ),
-      },
-      {
-        view: 'validator',
-        label: `Validation results (${validationResults.length})`,
-        content: (
-          <SchemaValidator results={validationResults} onSelectRange={onSelectValidationRange} />
-        ),
-      },
+      }
     ];
 
     const onTabSelect: OnSelectCallback = (tab) => {

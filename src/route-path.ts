@@ -1,6 +1,9 @@
+import { Lookup } from 'src/lookup';
+
 export type PathElement = {
   title: string;
   reference: string;
+  lookup?: Lookup;
 };
 
 export function linkTo(basePathSegments: Array<string>, references: Array<string>): string {

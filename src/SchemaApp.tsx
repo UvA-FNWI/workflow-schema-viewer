@@ -126,24 +126,11 @@ class SchemaAppWR extends React.PureComponent<RouteComponentProps, SchemaAppStat
   };
 
    render() {
-    const primaryItems = [
-      <PrimaryDropdown content={props => <ExampleMenu {...props} />} text="Examples" />,
-      <PrimaryDropdown content={props => <HelpMenu {...props} />} text="Help" />
-    ];
-
-    const recentlyViewed = getRecentlyViewedLinks();
-    if (recentlyViewed !== undefined) {
-      primaryItems.unshift(
-        <PrimaryDropdown content={props => <RecentlyViewedMenu recentlyViewed={recentlyViewed} {...props} />} text="Recently viewed" />
-      );
-    }
-
     return (
       <div>
         <AtlassianNavigation
           label="Json schema viewer header"
-          primaryItems={primaryItems}
-          renderCreate={NewSchema}
+          primaryItems={[]}
           renderProductHome={JsonSchemaHome}
         />
         <Switch>
@@ -153,10 +140,10 @@ class SchemaAppWR extends React.PureComponent<RouteComponentProps, SchemaAppStat
           </Route>
           <Route path="/view">
             <LoadSchema>
-              {(schema) => (
+              {(schemas) => (
                 <SchemaView
                   basePathSegments={['view']}
-                  schema={schema}
+                  schemas={schemas}
                   stage="both"
                 />
               )}

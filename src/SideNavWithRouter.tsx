@@ -113,7 +113,7 @@ class SideNavGroup extends React.PureComponent<SideNavGroupProps, SideNavGroupSt
 
   UNSAFE_componentWillMount() {
     this.setState({
-      open: false
+      open: true
     });
   }
 

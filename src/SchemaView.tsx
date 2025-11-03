@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getSchemaFromReference, InternalLookup, Lookup } from './lookup';
 import { PathElement } from './route-path';
-import { JsonSchema } from './schema';
+import { JsonSchema, JsonSchema1 } from './schema';
 import { SchemaExplorer } from './SchemaExplorer';
 import { SideNavWithRouter } from './SideNavWithRouter';
 import { Stage } from './stage';
@@ -15,7 +15,7 @@ import type { editor, IRange } from 'monaco-editor';
 
 export type SchemaViewProps = RouteComponentProps & {
   basePathSegments: Array<string>;
-  schema: JsonSchema;
+  schemas: JsonSchema[];
   stage: Stage;
 };
 
@@ -44,6 +44,8 @@ function removeLeadingSlash(v: string): string {
   }
   return v;
 }
+
+type LookupSet = { [key: string]: Lookup }
 
 export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaViewState> {
   private static Container = styled.div`
@@ -82,16 +84,22 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
   }
 
   public render() {
-    const { schema, basePathSegments } = this.props;
+    const { schemas, basePathSegments } = this.props;
 
-    const lookup = new InternalLookup(schema);
-    const path = this.getPathFromRoute(lookup);
+    const lookups: LookupSet = Object.fromEntries(schemas.map(s => [(s as JsonSchema1).title, new InternalLookup(s)]));
+    const path = this.getPathFromRoute(lookups);
 
     if (path.length === 0) {
       return <div>Error: Could not work out what to load from the schema.</div>
     }
 
     const currentPathElement = path[path.length - 1];
+    const lookup = currentPathElement.lookup;
+
+    if (!lookup) {
+      return <div>ERROR: object not found.</div>;
+    }
+
     const currentSchema = getSchemaFromReference(currentPathElement.reference, lookup);
 
     if (currentSchema === undefined) {
@@ -102,12 +110,12 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
       return <div>TODO: Implement anything or nothing schema once clicked on.</div>
     }
 
-    const generatedExample = generateJsonExampleFor(schema, lookup, 'both');
+    const generatedExample = generateJsonExampleFor(currentSchema, lookup, 'both');
     const fullExample: unknown = isErrors(generatedExample) ? {} : generatedExample.value;
 
     return (
       <SchemaViewWR.Container>
-        <SideNavWithRouter basePathSegments={basePathSegments} links={extractLinks(schema, lookup)} />
+        <SideNavWithRouter basePathSegments={basePathSegments} links={extractLinks(schemas, lookup)} />
         <SchemaExplorer
           basePathSegments={basePathSegments}
           path={path}
@@ -120,7 +128,7 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
         <SchemaViewWR.EditorContainer>
           <SchemaEditor
             initialContent={fullExample}
-            schema={schema}
+            schema={currentSchema}
             validationRange={this.state.selectedValidationRange}
             onValidate={(results) => this.setState({ validationResults: results })}
           />
@@ -130,7 +138,7 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
     );
   }
 
-  private getPathFromRoute(lookup: Lookup): Array<PathElement> {
+  private getPathFromRoute(lookups: LookupSet): Array<PathElement> {
     const { basePathSegments } = this.props;
     const { pathname } = this.props.location;
     const pathSegments = removeLeadingSlash(pathname).split('/');
@@ -139,21 +147,28 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
       iterator++;
     }
 
-    if (iterator === pathSegments.length) {
-      const reference = '#';
-      const title = getTitle(getSchemaFromReference(reference, lookup));
-      return [{
-        title,
-        reference
-      }];
-    }
+    // if (iterator === pathSegments.length) {
+    //   const reference = '#';
+    //   const title = getTitle(getSchemaFromReference(reference, lookup));
+    //   return [{
+    //     title,
+    //     reference
+    //   }];
+    // }
 
-    return pathSegments.slice(iterator).map(decodeURIComponent).map(userProvidedReference => {
-      const reference = userProvidedReference.startsWith('#') ? userProvidedReference : '#/invalid-reference';
+    return pathSegments.slice(iterator).map(decodeURIComponent).map(originalReference => {
+      const parts = originalReference.split('#');
+      const reference = '#' + (parts[1] ?? '');
+      const lookup = lookups[parts[0]];
+      if (!lookup) return {
+        title: "Not found",
+        reference
+      };
       const title = getTitle(getSchemaFromReference(reference, lookup));
       return {
         title,
-        reference
+        reference,
+        lookup
       };
     });
   }

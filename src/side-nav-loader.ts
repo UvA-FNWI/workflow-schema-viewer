@@ -1,40 +1,47 @@
 import { Lookup } from "./lookup";
-import { JsonSchema } from "./schema";
+import { JsonSchema, JsonSchema1 } from './schema';
 import { GroupSideNavLink, SideNavLink, SingleSideNavLink, Spacer } from "./SideNavWithRouter";
 import { getTitle } from "./title";
 
-export function extractLinks(schema: JsonSchema, lookup: Lookup): Array<SideNavLink> {
+export function extractLinks(schemas: JsonSchema[], lookup: Lookup): Array<SideNavLink> {
   const links = new Array<SideNavLink>();
 
-  if (typeof schema === 'boolean') {
-    return [{
-      title: 'Root',
-      reference: '#'
-    }];
+  for (const schema of schemas) {
+    if (typeof schema === 'boolean') continue;
+    links.push({
+      title: getTitle('#', schema),
+      reference: `${schema.title}#`,
+    });
   }
-
-  links.push({
-    title: getTitle('#', schema),
-    reference: '#'
-  });
   links.push(Spacer);
 
-  if (schema.definitions !== undefined) {
-    const children = new Array<SingleSideNavLink>();
-    for (const key in schema.definitions) {
-      if (Object.prototype.hasOwnProperty.call(schema.definitions, key)) {
-        const definition = schema.definitions[key];
-        const reference = `#/definitions/${key}`;
+  const definitionSchemas = schemas
+    .filter(s => typeof s !== 'boolean' && s.definitions !== undefined) as JsonSchema1[];
+  const definitionBlocks = definitionSchemas
+    .map(s => (s as JsonSchema1).definitions);
+  const definitions = Object.assign({}, ...definitionBlocks) as { [key: string]: JsonSchema };
+  const keys = Object.keys(definitions).sort();
 
-        children.push({
-          title: typeof definition === 'boolean' ? key : getTitle(reference, definition),
-          reference
-        });
+  if (definitionBlocks.length) {
+    const children = new Array<SingleSideNavLink>();
+    for (const key of keys) {
+      for (const schema of definitionSchemas) {
+        if (Object.prototype.hasOwnProperty.call(schema.definitions, key)) {
+          const definition = schema.definitions![key];
+          if (!definition || (definition as JsonSchema1)?.enum) continue;
+          const reference = `${schema.title}#/definitions/${key}`;
+
+          children.push({
+            title: typeof definition === 'boolean' ? key : getTitle(reference, definition),
+            reference,
+          });
+          break;
+        }
       }
     }
 
     const topDefinitionsGroup: GroupSideNavLink = {
-      title: 'Root definitions',
+      title: 'Definitions',
       reference: undefined,
       children
     };

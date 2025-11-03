@@ -6,7 +6,7 @@ import EmptyState from '@atlaskit/empty-state';
 import { addRecentlyViewedLink } from './recently-viewed';
 
 export type LoadSchemaProps = RouteComponentProps & {
-   children: (schema: JsonSchema) => ReactNode;
+   children: (schemas: JsonSchema[]) => ReactNode;
 };
 
 export type LoadSchemaError = {
@@ -14,7 +14,7 @@ export type LoadSchemaError = {
 };
 
 export type LoadSchemaState = {
-   result?: ResultState;
+   results: ResultState[];
 };
 
 export type ResultState = {
@@ -26,40 +26,43 @@ function isLoadSchemaError(e: JsonSchema | LoadSchemaError): e is LoadSchemaErro
    return typeof e !== 'boolean' && 'message' in e;
 }
 
+const targets = ["EntityType", "Form", "Role", "Screen", "Step", "ValueSet"];
+const baseUrl = "https://raw.githubusercontent.com/UvA-FNWI/workflow-api/refs/heads/feature/DN-3406-schemas/Schemas/";
+
 class LoadSchemaWR extends React.PureComponent<LoadSchemaProps, LoadSchemaState> {
    state: LoadSchemaState = {
-
+      results: []
    };
 
-   componentDidUpdate(prevProps: LoadSchemaProps, prevState: LoadSchemaState) {
-      const url = this.getUrlFromProps();
-      if (prevState.result !== undefined && prevState.result.currentUrl !== url && url !== null) {
-         this.loadUrl(url);
-      }
-   }
-
    componentDidMount() {
-      const url = this.getUrlFromProps();
-      if (url !== null) {
-         this.loadUrl(url);
-      }
+       this.loadData();
    }
 
-   private getUrlFromProps(): string | null {
-      const urlToFetch = new URLSearchParams(this.props.location.search);
-      return urlToFetch.get('url') ;
-   }
-
-   private loadUrl(url: string): void {
-      fetch(url)
-         .then(resp => resp.json())
-         .then(schema => this.setState({ result: { schema, currentUrl: url } }))
-         .catch(e => this.setState({ result: { currentUrl: url, schema: { message: e.message }}}));
+   private async loadData() {
+     for (const target of targets) {
+       const url = `${baseUrl}${target}.json`;
+       try {
+         const resp = await fetch(url);
+         const schema = await resp.json();
+         this.setState((prevState) => ({
+           results: [
+             ...prevState.results,
+             {
+               currentUrl: url,
+               schema
+             }
+           ]})
+         );
+       }
+       catch (e) {
+         this.setState((prevState) => ({ results: [...prevState.results, { currentUrl: url, schema: { message: (e as Error).message } }]}));
+       }
+     }
    }
 
    render() {
-      const { result } = this.state;
-      if (result === undefined) {
+      const { results } = this.state;
+      if (!results.length) {
          return (
             <EmptyState
                header="Loading schema..."
@@ -71,13 +74,13 @@ class LoadSchemaWR extends React.PureComponent<LoadSchemaProps, LoadSchemaState>
          );
       }
 
-      if (isLoadSchemaError(result.schema)) {
+      if (isLoadSchemaError(results[0].schema)) {
          return (
             <EmptyState
                header="Schema load failed"
                description="Attempted to pull the JSON Schema down from the public internet."
                primaryAction={(
-                  <p>Error: {result.schema.message}</p>
+                  <p>Error: {results[0].schema.message}</p>
                )}
             />
          );
@@ -87,12 +90,7 @@ class LoadSchemaWR extends React.PureComponent<LoadSchemaProps, LoadSchemaState>
       if (typeof children !== 'function') {
          throw new Error('The children of the LoadSchema must be a function to accept the schema.')
       }
-      const linkTitle = typeof result.schema !== 'boolean' ? result.schema.title || result.currentUrl : result.currentUrl;
-      addRecentlyViewedLink({
-         title: linkTitle,
-         url: result.currentUrl
-      });
-      return <>{children(result.schema)}</>;
+      return <>{children(results.map(r => r.schema))}</>;
    }
 }
 
