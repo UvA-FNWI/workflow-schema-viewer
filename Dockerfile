@@ -3,6 +3,7 @@ WORKDIR /source
 
 COPY package-lock.json .
 COPY package.json .
+COPY json-schema.draft-07.json .
 
 RUN mkdir src
 RUN npm i --no-audit
