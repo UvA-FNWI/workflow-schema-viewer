@@ -4,6 +4,7 @@ WORKDIR /source
 COPY package-lock.json .
 COPY package.json .
 
+RUN mkdir src
 RUN npm i --no-audit
 
 COPY . .
