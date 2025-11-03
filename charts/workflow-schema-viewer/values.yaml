@@ -1,0 +1,4 @@
+hostname: workflow-schema-viewer.local
+ingressClass: nginx
+tag: latest
+registry: datanosecr.azurecr.io

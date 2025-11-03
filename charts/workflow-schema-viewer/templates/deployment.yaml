@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-schema-viewer
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  selector:
+    matchLabels:
+      app: workflow-schema-viewer
+  replicas: 1
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      labels:
+        app: workflow-schema-viewer
+    spec:
+      containers:
+        - name: workflow-schema-viewer
+          image: "{{ .Values.registry }}/workflow-schema-viewer:{{ .Values.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: UI_VERSION
+              value: "{{ .Chart.AppVersion }}"

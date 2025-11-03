@@ -1,0 +1,30 @@
+name: build and deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and push container
+        run: |
+          set -euxo pipefail
+          docker build -f Dockerfile -t "datanosecr.azurecr.io/workflow-schema-viewer:latest" .
+          docker push "datanosecr.azurecr.io/workflow-schema-viewer:latest"
+
+      - name: Push chart and deploy
+        env:
+          UPDATER_SECRET: ${{ secrets.UPDATER_SECRET_DN }}
+        run: |
+          VERSION=$(date "+1.0.%Y%m%d%H%M%S")
+          helm package --version "${VERSION}" --app-version "${VERSION}" charts/workflow-schema-viewer
+          helm push "workflow-schema-viewer-${VERSION}.tgz" oci://datanosecr.azurecr.io/helm
+          curl "https://api-v2-tst.datanose.nl/gitops-updater?name=workflow-schema-viewer&secret=${UPDATER_SECRET}&version=${VERSION}"
