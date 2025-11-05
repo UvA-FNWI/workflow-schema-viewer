@@ -134,10 +134,7 @@ class SchemaAppWR extends React.PureComponent<RouteComponentProps, SchemaAppStat
           renderProductHome={JsonSchemaHome}
         />
         <Switch>
-          <Route exact={true} path="/"><Redirect to="/start" /></Route>
-          <Route exact={true} path="/start">
-            <Start />
-          </Route>
+          <Route exact={true} path="/"><Redirect to="/view/EntityType#" /></Route>
           <Route path="/view">
             <LoadSchema>
               {(schemas) => (
