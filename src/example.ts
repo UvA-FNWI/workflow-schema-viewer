@@ -2,6 +2,8 @@ import { JsonSchema, JsonSchema1 } from './schema';
 import { getSchemaFromResult, Lookup } from './lookup';
 import { getOrInferType } from './type-inference';
 import { Stage, shouldShowInStage } from './stage';
+import { dump } from 'js-yaml';
+import { loadExample } from './LoadSchema';
 
 export class Example {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -440,6 +442,18 @@ function generateJsonExampleForHelper(context: ChainContext, schemaOrRef: JsonSc
       notSupported(`Support schemas without a "type" has not been written yet. Source: ${schemaName}. Parent ${JSON.stringify(context.parent)}`)
     );
   }
+}
+
+export async function getExample(schema: JsonSchema, lookup: Lookup, stage: Stage) {
+  console.log(schema);
+  const name = (schema as JsonSchema1)?.title;
+  if (name) {
+    const res = await loadExample(name);
+    if (res) return res;
+  }
+
+  const generated = generateJsonExampleFor(schema, lookup, stage);
+  return isErrors(generated) ? "" : dump(generated.value);
 }
 
 export function generateJsonExampleFor(

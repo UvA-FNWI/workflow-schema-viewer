@@ -6,7 +6,7 @@ import { ScrollType } from './monaco-helpers';
 import { dump } from 'js-yaml';
 
 export type SchemaEditorProps = {
-  initialContent: unknown;
+  initialContent: string;
   schema: JsonSchema;
   validationRange?: IRange;
   onValidate: OnValidate;
@@ -47,7 +47,7 @@ export const SchemaEditor: React.FC<SchemaEditorProps> = (props) => {
     <Editor
       height="97vh"
       defaultLanguage="yaml"
-      value={dump(initialContent)}
+      value={initialContent}
       path="a://b/example.yaml"
       theme="vs-dark"
       saveViewState={false}

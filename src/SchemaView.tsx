@@ -9,7 +9,7 @@ import { SideNavWithRouter } from './SideNavWithRouter';
 import { Stage } from './stage';
 import { extractLinks } from './side-nav-loader';
 import { SchemaEditor } from './SchemaEditor';
-import { generateJsonExampleFor, isErrors } from './example';
+import { getExample } from './example';
 import { forSize } from './breakpoints';
 import type { editor, IRange } from 'monaco-editor';
 
@@ -22,6 +22,7 @@ export type SchemaViewProps = RouteComponentProps & {
 type SchemaViewState = {
   selectedValidationRange: IRange | undefined;
   validationResults: editor.IMarker[];
+  example: string | undefined;
 }
 
 // TODO we need to reverse engineer the schema explorer to show based on the path
@@ -79,6 +80,7 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
     super(props);
     this.state = {
       selectedValidationRange: undefined,
+      example: undefined,
       validationResults: []
     }
   }
@@ -110,8 +112,8 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
       return <div>TODO: Implement anything or nothing schema once clicked on.</div>
     }
 
-    const generatedExample = generateJsonExampleFor(currentSchema, lookup, 'both');
-    const fullExample: unknown = isErrors(generatedExample) ? {} : generatedExample.value;
+    getExample(currentSchema, lookup, 'both')
+      .then(ex => this.setState({ example: ex }));
 
     return (
       <SchemaViewWR.Container>
@@ -126,12 +128,12 @@ export class SchemaViewWR extends React.PureComponent<SchemaViewProps, SchemaVie
           validationResults={this.state.validationResults}
         />
         <SchemaViewWR.EditorContainer>
-          <SchemaEditor
-            initialContent={fullExample}
+          { this.state.example && <SchemaEditor
+            initialContent={this.state.example}
             schema={currentSchema}
             validationRange={this.state.selectedValidationRange}
             onValidate={(results) => this.setState({ validationResults: results })}
-          />
+          /> }
           <SchemaViewWR.EditorContainerHeading>Editor and Validator</SchemaViewWR.EditorContainerHeading>
         </SchemaViewWR.EditorContainer>
       </SchemaViewWR.Container>
