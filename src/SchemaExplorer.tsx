@@ -97,7 +97,7 @@ const SEPHead: React.FC<SEPHeadProps> = (props) => {
   };
 
   const ActionButton = props.path.length <= 1
-    ? <h1>Root</h1>
+    ? <h1>Workflow schema</h1>
     : (
       <LinkPreservingSearch to={linkTo(props.basePathSegments, init(props.path.map(p => p.reference)))} component={BackButton} />
     );

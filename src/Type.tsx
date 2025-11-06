@@ -168,6 +168,11 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
 
   const type = getOrInferType(s);
 
+  const propSchema = s.additionalProperties as JsonSchema1;
+  if (type === 'object' && propSchema.$ref != null) {
+    return <Plain>Dictionary&lt;{getTypeText(propSchema, currentReference, context)}&gt;</Plain>
+  }
+
   if (isClickable(s)) {
     return <Click schema={s} reference={currentReference} fallbackTitle={getObjectName(s, context)} />;
   }
