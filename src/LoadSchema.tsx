@@ -27,7 +27,7 @@ function isLoadSchemaError(e: JsonSchema | LoadSchemaError): e is LoadSchemaErro
 }
 
 const targets = ["EntityType", "Form", "Role", "Screen", "Step", "ValueSet"];
-const baseUrl = "https://raw.githubusercontent.com/UvA-FNWI/workflow-api/refs/heads/feature/DN-3406-schemas/Schemas/";
+const baseUrl = "https://raw.githubusercontent.com/UvA-FNWI/workflow-api/refs/heads/main/Schemas/";
 
 export const loadExample = async (type: string) => {
   try {
