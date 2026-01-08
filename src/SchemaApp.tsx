@@ -134,19 +134,19 @@ class SchemaAppWR extends React.PureComponent<RouteComponentProps, SchemaAppStat
           renderProductHome={JsonSchemaHome}
         />
         <Switch>
-          <Route exact={true} path="/"><Redirect to="/view/EntityType#" /></Route>
+          <Route exact={true} path="/">
+            <Redirect to="/view/WorkflowDefinition#" />
+          </Route>
           <Route path="/view">
             <LoadSchema>
               {(schemas) => (
-                <SchemaView
-                  basePathSegments={['view']}
-                  schemas={schemas}
-                  stage="both"
-                />
+                <SchemaView basePathSegments={['view']} schemas={schemas} stage="both" />
               )}
             </LoadSchema>
           </Route>
-          <Route path="/docs/:id"><Docs /></Route>
+          <Route path="/docs/:id">
+            <Docs />
+          </Route>
         </Switch>
       </div>
     );

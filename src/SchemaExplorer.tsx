@@ -403,7 +403,7 @@ function createClickElement(details: JsonSchemaObjectClickProps): ClickElement {
       }
     }
 
-    const references = ["EntityType" + props.reference];
+    const references = ["WorkflowDefinition" + props.reference];
     return (
       <LinkPreservingSearch to={linkTo(details.basePathSegments, references)}>
         {findTitle(props.reference, props.schema) || props.fallbackTitle}

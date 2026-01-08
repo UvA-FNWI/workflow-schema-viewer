@@ -26,7 +26,7 @@ function isLoadSchemaError(e: JsonSchema | LoadSchemaError): e is LoadSchemaErro
    return typeof e !== 'boolean' && 'message' in e;
 }
 
-const targets = ["EntityType", "Form", "Role", "Screen", "Step", "ValueSet"];
+const targets = ["WorkflowDefinition", "Form", "Role", "Screen", "Step", "ValueSet"];
 const baseUrl = "https://raw.githubusercontent.com/UvA-FNWI/workflow-api/refs/heads/main/Schemas/";
 
 export const loadExample = async (type: string) => {
